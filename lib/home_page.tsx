@@ -21,7 +21,7 @@ const HomePage: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.profileSubtitle}>Hearing-Impaired</Text>
           <View style={styles.profileDescriptionContainer}>
             <Text style={styles.profileDescription}>
-              Hi, I’m Jennifer, a deaf. I am muted and can’t hear you. I am using Resonate - AR transcription and emotion recognition app to speak with you. I appreciate your understanding, and thank you for considering my situation.
+              Hi, I’m Jennifer, a deaf. I am muted and can’t hear you haha. I am using Resonate - AR transcription and emotion recognition app to speak with you. I appreciate your understanding, and thank you for considering my situation.
             </Text>
             <View style={styles.languageSelectionContainer}>
               <Text style={styles.languageSelectionText}>German</Text>

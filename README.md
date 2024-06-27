@@ -1,4 +1,4 @@
-# Viro Starter Kit
+# Resonate
 
 This is a new [**React Native**](https://reactnative.dev) project, set up with `@reactvision/react-viro`.
 

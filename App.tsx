@@ -1,10 +1,10 @@
-// App.tsx
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import HomePage from "./lib/home_page";
-import ARScene from "./lib/arscene";
-import { RootStackParamList } from "./lib/types";
+import HomePage from "./lib/pages/home_page";
+import ARScene from "./lib/pages/ar/arscene";
+import ProfilePage from "./lib/pages/profile_page";
+import { RootStackParamList } from "./lib/pages/types";
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -12,8 +12,13 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomePage} />
+        <Stack.Screen
+          name="Home"
+          component={HomePage}
+          options={{ headerShown: false }} // Hide the header for HomePage
+        />
         <Stack.Screen name="ARScene" component={ARScene} />
+        <Stack.Screen name="Profile" component={ProfilePage} />
       </Stack.Navigator>
     </NavigationContainer>
   );

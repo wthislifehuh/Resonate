@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   profileSubtitle: {
     fontSize: 14,
-    color: colors.grey,
+    color: colors.lightGrey,
   },
   profileDescriptionContainer: {
     flexDirection: 'column',

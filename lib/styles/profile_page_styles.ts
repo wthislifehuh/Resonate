@@ -41,6 +41,7 @@ const stylesProfile = StyleSheet.create({
       fontSize: 18,
       color: '#FFFFFF',
       marginBottom: 10,
+      fontWeight: 'bold',
     },
     infoRow: {
       flexDirection: 'row',

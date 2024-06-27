@@ -19,6 +19,7 @@
     "@reactvision/react-viro": "^2.41.4",
     "react": "18.2.0",
     "react-native": "0.73.3",
+    "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "^2.17.1",
     "react-native-image-picker": "^7.1.2",
     "react-native-modal": "^13.0.1",

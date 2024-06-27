@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Modal } from "react-native";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileScreenNavigationProp } from "./types";
@@ -17,21 +17,38 @@ type Props = {
 
 const ProfilePage: React.FC<Props> = ({ navigation }) => {
   const [profileImage, setProfileImage] = useState(resonateFaceBackground);
+  const [profileName, setProfileName] = useState("Jennifer Tan");
+  const [profileSubtitle, setProfileSubtitle] = useState("Hearing-Impaired");
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editField, setEditField] = useState("");
+  const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
-    const loadProfileImage = async () => {
+    const loadProfileData = async () => {
       try {
         const imageUri = await AsyncStorage.getItem('profileImage');
-        if (imageUri !== null) {
-          setProfileImage({ uri: imageUri });
-        }
+        const name = await AsyncStorage.getItem('profileName');
+        const subtitle = await AsyncStorage.getItem('profileSubtitle');
+        if (imageUri !== null) setProfileImage({ uri: imageUri });
+        if (name !== null) setProfileName(name);
+        if (subtitle !== null) setProfileSubtitle(subtitle);
       } catch (error) {
-        console.log("Error loading profile image:", error);
+        console.log("Error loading profile data:", error);
       }
     };
 
-    loadProfileImage();
+    loadProfileData();
   }, []);
+
+  const saveProfileData = async (key: string, value: string) => {
+    try {
+      await AsyncStorage.setItem(key, value);
+      if (key === 'profileName') setProfileName(value);
+      if (key === 'profileSubtitle') setProfileSubtitle(value);
+    } catch (error) {
+      console.log("Error saving profile data:", error);
+    }
+  };
 
   const saveProfileImage = async (uri: string) => {
     try {
@@ -79,15 +96,33 @@ const ProfilePage: React.FC<Props> = ({ navigation }) => {
     );
   };
 
+  const handleEditPress = (field: string) => {
+    setEditField(field);
+    setEditValue(field === 'profileName' ? profileName : profileSubtitle);
+    setEditModalVisible(true);
+  };
+
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={stylesProfile.container}>
+      <ScrollView contentContainerStyle={stylesProfile.scrollContainer}>
         <View style={stylesProfile.profileSection}>
           <TouchableOpacity onPress={handleImagePress}>
             <Image source={profileImage} style={stylesProfile.profileImage} />
           </TouchableOpacity>
-          <Text style={stylesProfile.profileName}>Jennifer Tan</Text>
-          <Text style={stylesProfile.profileSubtitle}>Hearing-Impaired</Text>
+          <View style={stylesProfile.profileTextContainer}>
+            <View style={stylesProfile.profileRow}>
+              <TouchableOpacity onPress={() => handleEditPress('profileName')}>
+                <Image source={{ uri: 'https://img.icons8.com/pulsar-line/48/edit.png' }} style={stylesProfile.editIcon} />
+              </TouchableOpacity>
+              <Text style={stylesProfile.profileName}>{profileName}</Text>
+            </View>
+            <View style={stylesProfile.profileRow}>
+              <TouchableOpacity onPress={() => handleEditPress('profileSubtitle')}>
+                <Image source={{ uri: 'https://img.icons8.com/pulsar-line/48/edit.png' }} style={stylesProfile.editIcon} />
+              </TouchableOpacity>
+              <Text style={stylesProfile.profileSubtitle}>{profileSubtitle}</Text>
+            </View>
+          </View>
         </View>
         <View style={stylesProfile.infoSection}>
           <Text style={stylesProfile.sectionTitle}>About Me</Text>
@@ -114,13 +149,42 @@ const ProfilePage: React.FC<Props> = ({ navigation }) => {
           {renderSettingItem("", "Share this App")}
           {renderSettingItem("", "Logout")}
         </View>
+        <View style={stylesProfile.area}></View>
       </ScrollView>
+
       <TouchableOpacity
-        style={styles.floatingButton}
+        style={stylesProfile.floatingButton}
         onPress={() => navigation.navigate("ARScene")}
       >
-        <Image source={videoFace} style={styles.floatingButtonIcon} />
+        <Image source={videoFace} style={stylesProfile.floatingButtonIcon} />
       </TouchableOpacity>
+
+      <Modal
+        visible={editModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={stylesProfile.modalContainer}>
+          <View style={stylesProfile.modalContent}>
+            <Text style={stylesProfile.modalTitle}>Edit {editField === 'profileName' ? 'Name' : 'Description'}</Text>
+            <TextInput
+              style={stylesProfile.textInput}
+              value={editValue}
+              onChangeText={setEditValue}
+            />
+            <TouchableOpacity
+              style={stylesProfile.saveButton}
+              onPress={() => {
+                saveProfileData(editField, editValue);
+                setEditModalVisible(false);
+              }}
+            >
+              <Text style={stylesProfile.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

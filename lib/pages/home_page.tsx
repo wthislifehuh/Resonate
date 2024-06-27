@@ -7,6 +7,7 @@ import videoFace from '../assets/video-face.png';
 import resonateFaceBackground from '../assets/resonate-background.png';
 import info from '../assets/white-info.png';
 import dropdown from '../assets/dropdown.png';
+import profile from '../assets/icon/profile-icon.png';
 
 type Props = {
   navigation: HomeScreenNavigationProp;
@@ -23,32 +24,26 @@ const HomePage: React.FC<Props> = ({ navigation }) => {
   );
   const [editableDescription, setEditableDescription] = useState(profileDescription);
   const [profileImage, setProfileImage] = useState(resonateFaceBackground);
+  const [profileName, setProfileName] = useState("Jennifer Tan");
+  const [profileSubtitle, setProfileSubtitle] = useState("Hearing-Impaired");
 
   useEffect(() => {
-    const loadProfileDescription = async () => {
+    const loadProfileData = async () => {
       try {
         const description = await AsyncStorage.getItem('profileDescription');
-        if (description !== null) {
-          setProfileDescription(description);
-        }
-      } catch (error) {
-        console.log("Error loading profile description:", error);
-      }
-    };
-
-    const loadProfileImage = async () => {
-      try {
         const imageUri = await AsyncStorage.getItem('profileImage');
-        if (imageUri !== null) {
-          setProfileImage({ uri: imageUri });
-        }
+        const name = await AsyncStorage.getItem('profileName');
+        const subtitle = await AsyncStorage.getItem('profileSubtitle');
+        if (description !== null) setProfileDescription(description);
+        if (imageUri !== null) setProfileImage({ uri: imageUri });
+        if (name !== null) setProfileName(name);
+        if (subtitle !== null) setProfileSubtitle(subtitle);
       } catch (error) {
-        console.log("Error loading profile image:", error);
+        console.log("Error loading profile data:", error);
       }
     };
 
-    loadProfileDescription();
-    loadProfileImage();
+    loadProfileData();
   }, []);
 
   const saveProfileDescription = async (description: string) => {
@@ -84,8 +79,8 @@ const HomePage: React.FC<Props> = ({ navigation }) => {
               />
             </TouchableOpacity>
             <View style={styles.profileTextContainer}>
-              <Text style={styles.profileName}>Jennifer Tan</Text>
-              <Text style={styles.profileSubtitle}>Hearing-Impaired</Text>
+              <Text style={styles.profileName}>{profileName}</Text>
+              <Text style={styles.profileSubtitle}>{profileSubtitle}</Text>
             </View>
           </View>
           <View style={styles.profileDescriptionContainer}>
@@ -185,7 +180,7 @@ const HomePage: React.FC<Props> = ({ navigation }) => {
 const renderConversation = (name: string, date: string, topic: string) => (
   <View style={styles.conversationItem} key={name + date}>
     <Image
-      source={{ uri: 'https://img.icons8.com/pulsar-line/48/000000/user-male-circle.png' }}
+      source={profile}
       style={styles.conversationImage}
     />
     <View style={styles.conversationTextContainer}>

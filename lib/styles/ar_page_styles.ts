@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: 40,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
     height: '40%',
     backgroundColor: colors.grey,
     padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   textInput: {
     height: 50,  // Adjusted height for better UI

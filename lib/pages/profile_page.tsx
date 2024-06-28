@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Modal } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal } from "react-native";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileScreenNavigationProp } from "./types";
@@ -10,6 +10,7 @@ import resonateFaceBackground from '../assets/resonate-background.png';
 import info from '../assets/icon/about-icon.png';
 import phoneIcon from '../assets/icon/phone-icon.png';
 import mailIcon from '../assets/icon/mail-icon.png';
+import profileDeco from '../assets/background/profile-deco.png'; // Import the background image
 
 type Props = {
   navigation: ProfileScreenNavigationProp;
@@ -105,6 +106,9 @@ const ProfilePage: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={stylesProfile.scrollContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+          <Image source={profileDeco} style={stylesProfile.backgroundImage} />
+        </TouchableOpacity>
         <View style={stylesProfile.profileSection}>
           <TouchableOpacity onPress={handleImagePress}>
             <Image source={profileImage} style={stylesProfile.profileImage} />

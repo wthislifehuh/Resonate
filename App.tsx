@@ -17,8 +17,14 @@ const App = () => {
           component={HomePage}
           options={{ headerShown: false }} // Hide the header for HomePage
         />
-        <Stack.Screen name="ARScene" component={ARScene} />
-        <Stack.Screen name="Profile" component={ProfilePage} />
+        <Stack.Screen 
+          name="ARScene" 
+          component={ARScene}  
+          options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="Profile" 
+          component={ProfilePage} 
+          options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

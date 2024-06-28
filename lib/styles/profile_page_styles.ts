@@ -6,9 +6,17 @@ const stylesProfile = StyleSheet.create({
     padding: 20,
     backgroundColor: colors.darkGrey,
   },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 150, 
+    height: 150, 
+    margin: -20,
+  },
   profileSection: {
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 20,
     marginBottom: 20,
   },
   profileImage: {

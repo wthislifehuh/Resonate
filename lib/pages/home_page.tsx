@@ -13,7 +13,7 @@ type Props = {
   navigation: HomeScreenNavigationProp;
 };
 
-const languages = ["English(default)", "Chinese", "German", "French", "Spanish", "Japanese", "Malay"];
+const languages = ["English(default)", "Chinese", "German", "French", "Spanish", "Japanese", "Malay", "Korean"];
 
 const HomePage: React.FC<Props> = ({ navigation }) => {
   const [selectedLanguage, setSelectedLanguage] = useState("German");

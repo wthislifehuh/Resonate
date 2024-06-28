@@ -6,8 +6,22 @@ import {
   ViroTrackingStateConstants,
 } from "@reactvision/react-viro";
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View, TouchableOpacity, Image } from "react-native";
+import { StackNavigationProp } from '@react-navigation/stack';
+import styles from "../../styles/ar_styles";
 import ARConverse from "./arConverse";
+import backButtonIcon from '../../assets/icon/back-icon.png';
+
+type RootStackParamList = {
+  ARScene: undefined;
+  Home: undefined;
+};
+
+type ARSceneNavigationProp = StackNavigationProp<RootStackParamList, 'ARScene'>;
+
+type Props = {
+  navigation: ARSceneNavigationProp;
+};
 
 const HelloWorldSceneAR = () => {
   const [text, setText] = useState("Initializing Emotion AR...");
@@ -33,7 +47,7 @@ const HelloWorldSceneAR = () => {
   );
 };
 
-const ARScene = () => {
+const ARScene: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={{ flex: 1 }}>
       <ViroARSceneNavigator
@@ -44,19 +58,14 @@ const ARScene = () => {
         style={styles.f1}
       />
       <ARConverse />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Image source={backButtonIcon} style={styles.backButtonIcon} />
+      </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  f1: { flex: 1 },
-  helloWorldTextStyle: {
-    fontFamily: "Arial",
-    fontSize: 30,
-    color: "#ffffff",
-    textAlignVertical: "center",
-    textAlign: "center",
-  },
-});
 
 export default ARScene;

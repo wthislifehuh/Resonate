@@ -21,6 +21,31 @@ const styles = StyleSheet.create({
       width: 50,
       height: 50,
     },
+    permissionContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#000',
+      padding: 20,
+    },
+    permissionText: {
+      color: '#fff',
+      fontSize: 18,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    alertText: {
+      position: 'absolute',
+      bottom: 30,
+      left: 20,
+      right: 20,
+      backgroundColor: 'rgba(0, 0, 0, 0.2)', 
+      color: colors.white, 
+      padding: 8, 
+      borderRadius: 30, 
+      textAlign: 'center', 
+      flex: 1, //
+    },
   });
 
   export default styles;

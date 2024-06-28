@@ -5,12 +5,14 @@ import {
   ViroTrackingReason,
   ViroTrackingStateConstants,
 } from "@reactvision/react-viro";
-import React, { useState } from "react";
-import { View, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, TouchableOpacity, Image, PermissionsAndroid, Platform, Text, Alert } from "react-native";
 import { StackNavigationProp } from '@react-navigation/stack';
+import { check, request, PERMISSIONS, RESULTS, PermissionStatus } from 'react-native-permissions';
 import styles from "../../styles/ar_styles";
 import ARConverse from "./arConverse";
 import backButtonIcon from '../../assets/icon/back-icon.png';
+import useClientAudio from "../../../src/api/client-audio"; 
 
 type RootStackParamList = {
   ARScene: undefined;
@@ -48,6 +50,54 @@ const HelloWorldSceneAR = () => {
 };
 
 const ARScene: React.FC<Props> = ({ navigation }) => {
+  const [cameraPermission, setCameraPermission] = useState<PermissionStatus | null>(null);
+  const artext = useClientAudio();
+
+  useEffect(() => {
+    requestCameraPermission();
+  }, []);
+
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      const result = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+      if (!result) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: "Camera Permission",
+            message: "App needs access to your camera to display AR content.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
+        );
+        setCameraPermission(granted === PermissionsAndroid.RESULTS.GRANTED ? "granted" : "denied");
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(
+            "Camera Permission Denied",
+            "Camera access is required to use AR features. Please enable camera access in your device settings.",
+            [{ text: "OK", onPress: () => navigation.goBack() }]
+          );
+        }
+      } else {
+        setCameraPermission("granted");
+      }
+    }
+  };
+
+  if (cameraPermission !== "granted") {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>
+          Camera access is required to use AR features. Please enable camera access in your device settings.
+        </Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Image source={backButtonIcon} style={styles.backButtonIcon} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <ViroARSceneNavigator
@@ -64,6 +114,7 @@ const ARScene: React.FC<Props> = ({ navigation }) => {
       >
         <Image source={backButtonIcon} style={styles.backButtonIcon} />
       </TouchableOpacity>
+      <Text style={styles.alertText}>{artext}</Text>
     </View>
   );
 };

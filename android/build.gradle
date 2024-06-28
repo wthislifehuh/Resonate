@@ -6,6 +6,7 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "25.1.8937393"
         kotlinVersion = "1.8.0"
+        gradlePluginVersion = "4.2.2"
     }
     repositories {
         google()
@@ -13,6 +14,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
+        classpath("com.android.tools.build:gradle:$gradlePluginVersion")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }

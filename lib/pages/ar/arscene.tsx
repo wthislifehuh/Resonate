@@ -108,13 +108,13 @@ const ARScene: React.FC<Props> = ({ navigation }) => {
         style={styles.f1}
       />
       <ARConverse />
+      <Text style={styles.alertText}>{artext}</Text>
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
         <Image source={backButtonIcon} style={styles.backButtonIcon} />
       </TouchableOpacity>
-      <Text style={styles.alertText}>{artext}</Text>
     </View>
   );
 };

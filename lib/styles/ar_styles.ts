@@ -36,15 +36,14 @@ const styles = StyleSheet.create({
     },
     alertText: {
       position: 'absolute',
-      bottom: 30,
+      bottom: 40,
       left: 20,
       right: 20,
-      backgroundColor: 'rgba(0, 0, 0, 0.2)', 
-      color: colors.white, 
-      padding: 8, 
+      color: colors.yellow, 
+      padding: 5, 
       borderRadius: 30, 
       textAlign: 'center', 
-      flex: 1, //
+      flex: 1, 
     },
   });
 

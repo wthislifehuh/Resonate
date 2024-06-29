@@ -1,18 +1,15 @@
-import {
-  ViroARScene,
-  ViroARSceneNavigator,
-  ViroText,
-  ViroTrackingReason,
-  ViroTrackingStateConstants,
-} from "@reactvision/react-viro";
 import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, Image, PermissionsAndroid, Platform, Text, Alert } from "react-native";
+import { View, TouchableOpacity, Image, PermissionsAndroid, Platform, Alert , Text} from "react-native";
 import { StackNavigationProp } from '@react-navigation/stack';
-import { check, request, PERMISSIONS, RESULTS, PermissionStatus } from 'react-native-permissions';
+import { check, request, PermissionStatus } from 'react-native-permissions';
+import {
+  ViroARSceneNavigator,
+} from "@reactvision/react-viro";
 import styles from "../../styles/ar_styles";
 import ARConverse from "./arConverse";
 import useClientAudio from "../../../src/api/client-audio"; 
 import backButtonIcon from '../../assets/icon/back-icon.png';
+import HelloWorldSceneAR from "./setARText";
 
 type RootStackParamList = {
   ARScene: undefined;
@@ -25,54 +22,14 @@ type Props = {
   navigation: ARSceneNavigationProp;
 };
 
-type HelloWorldSceneARProps = {
-  arText: string;
-  isReceivingAudio: boolean;
-};
-
-const HelloWorldSceneAR: React.FC<HelloWorldSceneARProps> = ({ arText, isReceivingAudio }) => {
-  const [text, setText] = useState("Initializing Emotion AR...");
-
-  useEffect(() => {
-    setText(arText);
-  }, [arText]);
-
-  function onInitialized(state: any, reason: ViroTrackingReason) {
-    console.log("onInitialized", state, reason);
-    if (state === ViroTrackingStateConstants.TRACKING_NORMAL) {
-      setText(arText);
-    } else if (state === ViroTrackingStateConstants.TRACKING_UNAVAILABLE) {
-      // Handle loss of tracking
-    }
-  }
-
-  return (
-    <ViroARScene onTrackingUpdated={onInitialized}>
-      <ViroText
-        text={text}
-        scale={[0.5, 0.5, 0.5]}
-        position={[0, 0, -1]}
-        style={styles.helloWorldTextStyle}
-      />
-      {isReceivingAudio && (
-        <ViroText
-          text="Receiving audio..."
-          scale={[0.2, 0.2, 0.2]}
-          position={[0, 0.5, -1]}
-          style={styles.helloWorldTextStyle}
-        />
-      )}
-    </ViroARScene>
-  );
-};
-
 const ARScene: React.FC<Props> = ({ navigation }) => {
   const [cameraPermission, setCameraPermission] = useState<PermissionStatus | null>(null);
-  const { text: arText, isReceivingAudio } = useClientAudio();
+  const { text: arText } = useClientAudio();
 
   useEffect(() => {
+    console.log("arText in ARScene:", arText); // Debug log
     requestCameraPermission();
-  }, []);
+  }, [arText]);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -107,12 +64,12 @@ const ARScene: React.FC<Props> = ({ navigation }) => {
       <ViroARSceneNavigator
         autofocus={true}
         initialScene={{
-          scene: () => <HelloWorldSceneAR arText={arText} isReceivingAudio={isReceivingAudio} />,
+          scene: () => <HelloWorldSceneAR arText={arText} />,
         }}
         style={styles.f1}
       />
+      <Text style={styles.alertText}>{arText} </Text>
       <ARConverse />
-      <Text style={styles.alertText}>{arText}</Text>
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}

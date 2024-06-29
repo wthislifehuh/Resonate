@@ -1,49 +1,62 @@
 import { useEffect, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { Text,ScrollView } from "react-native";
+import { Text, ScrollView } from "react-native";
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 const serverCheckInterval = 5000; // Check every 5 seconds
 
 const useClientAudio = () => {
   const [text, setText] = useState("");
-  const [serverAvailable, setServerAvailable] = useState(false);
+  const [serverAvailable, setServerAvailable] = useState({ audio: false, video: false });
   const [micAvailable, setMicAvailable] = useState(false);
   const [fullSentences, setFullSentences] = useState([]);
-  let socket;
+  const [mergedData, setMergedData] = useState([]);
+  
+  let audioSocket;
+  let videoSocket;
   let audioContext;
   let processor;
 
   useEffect(() => {
-    connectToServer();
+    connectToAudioServer();
+    connectToVideoServer();
     requestMicrophonePermission();
+
     const intervalId = setInterval(() => {
-      if (!serverAvailable) {
-        connectToServer();
+      if (!serverAvailable.audio) {
+        connectToAudioServer();
+      }
+      if (!serverAvailable.video) {
+        connectToVideoServer();
       }
     }, serverCheckInterval);
+
     return () => {
       clearInterval(intervalId); // Clean up the interval on unmount
-      if (socket) {
-        socket.close();
+      if (audioSocket) {
+        audioSocket.close();
+      }
+      if (videoSocket) {
+        videoSocket.close();
       }
     };
   }, []);
 
-  const connectToServer = () => {
-    console.log("Connecting to WebSocket server...");
-    socket = new WebSocket("ws://192.168.1.4:8001");
+  // Connect to audio websocket
+  const connectToAudioServer = () => {
+    console.log("Connecting to Audio WebSocket server...");
+    audioSocket = new WebSocket("ws://192.168.1.4:8001");
 
-    socket.onopen = () => {
-      console.log("Connected to WebSocket server");
-      setServerAvailable(true);
-      setText("🖥️  Connected to server successfully  🖥️");
+    audioSocket.onopen = () => {
+      console.log("Connected to Audio WebSocket server");
+      setServerAvailable(prev => ({ ...prev, audio: true }));
+      setText("🖥️  Connected to audio server successfully  🖥️");
       startMessage();
     };
 
-    socket.onmessage = (event) => {
-      console.log("Received message from server", event.data);
+    audioSocket.onmessage = (event) => {
+      console.log("Received message from audio server", event.data);
       const data = JSON.parse(event.data);
 
       if (data.type === "realtime") {
@@ -52,17 +65,48 @@ const useClientAudio = () => {
         setFullSentences((prevSentences) => [...prevSentences, data.text]);
         setText((prevText) => updateDisplayText(prevText, ""));
       }
+      mergeData(data);
     };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      setServerAvailable(false);
+    audioSocket.onerror = (error) => {
+      console.error("Audio WebSocket error:", error);
+      setServerAvailable(prev => ({ ...prev, audio: false }));
     };
 
-    socket.onclose = () => {
-      console.log("WebSocket connection closed");
-      setServerAvailable(false);
-      setText("🖥️  Connection to server lost  🖥️");
+    audioSocket.onclose = () => {
+      console.log("Audio WebSocket connection closed");
+      setServerAvailable(prev => ({ ...prev, audio: false }));
+      setText("🖥️  Connection to audio server lost  🖥️");
+    };
+  };
+
+  // Connect to video websocket
+  const connectToVideoServer = () => {
+    console.log("Connecting to Video WebSocket server...");
+    videoSocket = new WebSocket("ws://192.168.1.4:8002");
+
+    videoSocket.onopen = () => {
+      console.log("Connected to Video WebSocket server");
+      setServerAvailable(prev => ({ ...prev, video: true }));
+      setText("🖥️  Connected to video server successfully  🖥️");
+    };
+
+    videoSocket.onmessage = (event) => {
+      console.log("Received message from video server", event.data);
+      const data = JSON.parse(event.data);
+
+      mergeData(data);
+    };
+
+    videoSocket.onerror = (error) => {
+      console.error("Video WebSocket error:", error);
+      setServerAvailable(prev => ({ ...prev, video: false }));
+    };
+
+    videoSocket.onclose = () => {
+      console.log("Video WebSocket connection closed");
+      setServerAvailable(prev => ({ ...prev, video: false }));
+      setText("🖥️  Connection to video server lost  🖥️");
     };
   };
 
@@ -97,8 +141,8 @@ const useClientAudio = () => {
   const startMessage = () => {
     if (!micAvailable) {
       setText("🎤  Please allow microphone access  🎤");
-    } else if (!serverAvailable) {
-      setText("🖥️  Please start server  🖥️");
+    } else if (!serverAvailable.audio && !serverAvailable.video) {
+      setText("🖥️  Please start servers  🖥️");
     } else {
       setText("👄  Start speaking  👄");
       startRecording();
@@ -126,7 +170,7 @@ const useClientAudio = () => {
           }
 
           // Send the 16-bit PCM data to the server
-          if (socket.readyState === WebSocket.OPEN) {
+          if (audioSocket.readyState === WebSocket.OPEN) {
             // Create a JSON string with metadata
             const metadata = JSON.stringify({ sampleRate: audioContext.sampleRate });
             // Convert metadata to a byte array
@@ -138,7 +182,7 @@ const useClientAudio = () => {
             metadataLengthView.setInt32(0, metadataBytes.byteLength, true); // true for little-endian
             // Combine metadata length, metadata, and audio data into a single message
             const combinedData = new Blob([metadataLength, metadataBytes, outputData.buffer]);
-            socket.send(combinedData);
+            audioSocket.send(combinedData);
           }
         };
       } catch (error) {
@@ -155,6 +199,14 @@ const useClientAudio = () => {
       .join("") + realtimeText;
 
     return displayedText;
+  };
+
+  const mergeData = (data) => {
+    setMergedData((prevData) => [...prevData, data]);
+    // Put the fusion algorithm here
+    // Currently using dummy data for testing ONLY
+    console.log("Merged Data: ", mergedData);
+    return mergeData;
   };
 
   return text;

@@ -1,225 +1,199 @@
-import { useEffect, useState } from "react";
-import { PermissionsAndroid, Platform } from "react-native";
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { Text, ScrollView } from "react-native";
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Button,
+  PermissionsAndroid,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+} from 'react-native';
+import AudioRecord from 'react-native-audio-record';
+import { Buffer } from 'buffer';
 
-const audioRecorderPlayer = new AudioRecorderPlayer();
-const serverCheckInterval = 5000; // Check every 5 seconds
+// Request for camera permission
+const requestCameraPermission = async () => {
+  console.log('Requesting camera permission...');
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        title: 'Resonate Camera Permission',
+        message: 'Resonate needs access to your camera so you can connect seamlessly with the world',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log('Camera permission granted');
+      return true;
+    } else {
+      console.log('Camera permission denied');
+      Alert.alert('Permission Denied', 'Camera access is required to proceed.');
+      return false;
+    }
+  } catch (err) {
+    console.warn(err);
+    Alert.alert('Error', 'An error occurred while requesting camera permission.');
+    return false;
+  }
+};
 
-const useClientAudio = () => {
-  const [text, setText] = useState("");
-  const [serverAvailable, setServerAvailable] = useState({ audio: false, video: false });
-  const [micAvailable, setMicAvailable] = useState(false);
-  const [fullSentences, setFullSentences] = useState([]);
-  const [mergedData, setMergedData] = useState([]);
-  
-  let audioSocket;
-  let videoSocket;
-  let audioContext;
-  let processor;
+// Request for microphone permission
+const requestMicrophonePermission = async () => {
+  console.log('Requesting microphone permission...');
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      {
+        title: 'Resonate Microphone Permission',
+        message: 'Resonate needs access to your microphone so you can connect seamlessly with the world',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log('Microphone permission granted');
+      return true;
+    } else {
+      console.log('Microphone permission denied');
+      Alert.alert('Permission Denied', 'Microphone access is required to proceed.');
+      return false;
+    }
+  } catch (err) {
+    console.warn(err);
+    Alert.alert('Error', 'An error occurred while requesting microphone permission.');
+    return false;
+  }
+};
+
+// Main processing
+const AudioTextDisplay = () => {
+  const audioSocketRef = useRef(null);
+  const videoSocketRef = useRef(null);
+  const reconnectInterval = 5000; // 5 seconds
+  const isInitialized = useRef(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
-    connectToAudioServer();
-    connectToVideoServer();
-    requestMicrophonePermission();
+    const connectSocket = (url, ref, message) => {
+      if (ref.current && ref.current.readyState === WebSocket.OPEN) {
+        return; // Avoid reconnecting if already connected
+      }
+      ref.current = new WebSocket(url);
 
-    const intervalId = setInterval(() => {
-      if (!serverAvailable.audio) {
-        connectToAudioServer();
+      ref.current.onopen = () => {
+        console.log(`${message} WebSocket connection opened`);
+      };
+
+      ref.current.onmessage = (e) => {
+        console.log(`Receiving message from the ${message.toLowerCase()} server...`);
+        const data = JSON.parse(e.data);
+        console.log(data);
+      };
+
+      ref.current.onerror = (e) => {
+        console.log(`An error occurred in the ${message.toLowerCase()} server: ${e.message}`);
+      };
+
+      ref.current.onclose = (e) => {
+        console.log(`Shutting down the ${message.toLowerCase()} server...`);
+        console.log(e.code, e.reason);
+        setTimeout(() => connectSocket(url, ref, message), reconnectInterval);
+      };
+    };
+
+    const initializeConnections = async () => {
+      if (isInitialized.current) return;
+      isInitialized.current = true;
+
+      const microphoneGranted = await requestMicrophonePermission();
+      const cameraGranted = await requestCameraPermission();
+
+      if (microphoneGranted && cameraGranted) {
+        connectSocket('ws://192.168.1.4:8001', audioSocketRef, 'Audio');
+        connectSocket('ws://192.168.1.4:8002', videoSocketRef, 'Video');
+
+        const options = {
+          sampleRate: 16000,  // default 44100
+          channels: 1,        // 1 or 2, default 1
+          bitsPerSample: 16,  // 8 or 16, default 16
+          wavFile: 'test.wav' // default null
+        };
+
+        try {
+          AudioRecord.init(options);
+        } catch (err) {
+          console.error('AudioRecord init error:', err);
+        }
+
+        AudioRecord.on('data', data => {
+          console.log('Audio data received');
+          if (audioSocketRef.current && audioSocketRef.current.readyState === WebSocket.OPEN) {
+            audioSocketRef.current.send(data);
+          }
+        });
       }
-      if (!serverAvailable.video) {
-        connectToVideoServer();
-      }
-    }, serverCheckInterval);
+    };
+
+    initializeConnections();
 
     return () => {
-      clearInterval(intervalId); // Clean up the interval on unmount
-      if (audioSocket) {
-        audioSocket.close();
+      isInitialized.current = false;
+      if (audioSocketRef.current) {
+        audioSocketRef.current.close();
       }
-      if (videoSocket) {
-        videoSocket.close();
+      if (videoSocketRef.current) {
+        videoSocketRef.current.close();
       }
     };
   }, []);
 
-  // Connect to audio websocket
-  const connectToAudioServer = () => {
-    console.log("Connecting to Audio WebSocket server...");
-    audioSocket = new WebSocket("ws://192.168.1.4:8001");
-
-    audioSocket.onopen = () => {
-      console.log("Connected to Audio WebSocket server");
-      setServerAvailable(prev => ({ ...prev, audio: true }));
-      setText("🖥️  Connected to audio server successfully  🖥️");
-      startMessage();
-    };
-
-    audioSocket.onmessage = (event) => {
-      console.log("Received message from audio server", event.data);
-      const data = JSON.parse(event.data);
-
-      if (data.type === "realtime") {
-        setText((prevText) => updateDisplayText(prevText, data.text));
-      } else if (data.type === "fullSentence") {
-        setFullSentences((prevSentences) => [...prevSentences, data.text]);
-        setText((prevText) => updateDisplayText(prevText, ""));
-      }
-      mergeData(data);
-    };
-
-    audioSocket.onerror = (error) => {
-      console.error("Audio WebSocket error:", error);
-      setServerAvailable(prev => ({ ...prev, audio: false }));
-    };
-
-    audioSocket.onclose = () => {
-      console.log("Audio WebSocket connection closed");
-      setServerAvailable(prev => ({ ...prev, audio: false }));
-      setText("🖥️  Connection to audio server lost  🖥️");
-    };
-  };
-
-  // Connect to video websocket
-  const connectToVideoServer = () => {
-    console.log("Connecting to Video WebSocket server...");
-    videoSocket = new WebSocket("ws://192.168.1.4:8002");
-
-    videoSocket.onopen = () => {
-      console.log("Connected to Video WebSocket server");
-      setServerAvailable(prev => ({ ...prev, video: true }));
-      setText("🖥️  Connected to video server successfully  🖥️");
-    };
-
-    videoSocket.onmessage = (event) => {
-      console.log("Received message from video server", event.data);
-      const data = JSON.parse(event.data);
-
-      mergeData(data);
-    };
-
-    videoSocket.onerror = (error) => {
-      console.error("Video WebSocket error:", error);
-      setServerAvailable(prev => ({ ...prev, video: false }));
-    };
-
-    videoSocket.onclose = () => {
-      console.log("Video WebSocket connection closed");
-      setServerAvailable(prev => ({ ...prev, video: false }));
-      setText("🖥️  Connection to video server lost  🖥️");
-    };
-  };
-
-  const requestMicrophonePermission = async () => {
-    if (Platform.OS === "android") {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          {
-            title: "Microphone Permission",
-            message: "App needs access to your microphone to record audio.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          setMicAvailable(true);
-          startMessage();
-        } else {
-          setMicAvailable(false);
-        }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else {
-      setMicAvailable(true);
-      startMessage();
-    }
-  };
-
-  const startMessage = () => {
-    if (!micAvailable) {
-      setText("🎤  Please allow microphone access  🎤");
-    } else if (!serverAvailable.audio && !serverAvailable.video) {
-      setText("🖥️  Please start servers  🖥️");
-    } else {
-      setText("👄  Start speaking  👄");
-      startRecording();
-    }
-  };
-
   const startRecording = async () => {
-    if (micAvailable) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        processor = audioContext.createScriptProcessor(256, 1, 1);
-
-        source.connect(processor);
-        processor.connect(audioContext.destination);
-
-        processor.onaudioprocess = (e) => {
-          const inputData = e.inputBuffer.getChannelData(0);
-          const outputData = new Int16Array(inputData.length);
-
-          // Convert to 16-bit PCM
-          for (let i = 0; i < inputData.length; i++) {
-            outputData[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768));
-          }
-
-          // Send the 16-bit PCM data to the server
-          if (audioSocket.readyState === WebSocket.OPEN) {
-            // Create a JSON string with metadata
-            const metadata = JSON.stringify({ sampleRate: audioContext.sampleRate });
-            // Convert metadata to a byte array
-            const metadataBytes = new TextEncoder().encode(metadata);
-            // Create a buffer for metadata length (4 bytes for 32-bit integer)
-            const metadataLength = new ArrayBuffer(4);
-            const metadataLengthView = new DataView(metadataLength);
-            // Set the length of the metadata in the first 4 bytes
-            metadataLengthView.setInt32(0, metadataBytes.byteLength, true); // true for little-endian
-            // Combine metadata length, metadata, and audio data into a single message
-            const combinedData = new Blob([metadataLength, metadataBytes, outputData.buffer]);
-            audioSocket.send(combinedData);
-          }
-        };
-      } catch (error) {
-        console.error('Failed to start recording', error);
-      }
+    try {
+      await AudioRecord.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Error starting recording:', err);
     }
   };
 
-  const updateDisplayText = (prevText, realtimeText) => {
-    let displayedText = fullSentences
-      .map((sentence, index) => {
-        return `<span style="color:${index % 2 === 0 ? 'yellow' : 'cyan'}">${sentence} </span>`;
-      })
-      .join("") + realtimeText;
-
-    return displayedText;
+  const stopRecording = async () => {
+    try {
+      await AudioRecord.stop();
+      setIsRecording(false);
+    } catch (err) {
+      console.error('Error stopping recording:', err);
+    }
   };
-
-  const mergeData = (data) => {
-    setMergedData((prevData) => [...prevData, data]);
-    // Put the fusion algorithm here
-    // Currently using dummy data for testing ONLY
-    console.log("Merged Data: ", mergedData);
-    return mergeData;
-  };
-
-  return text;
-};
-
-const AudioTextDisplay = () => {
-  const text = useClientAudio();
 
   return (
-    <ScrollView style={{ padding: 20 }}>
-      <Text>{text}</Text>
-    </ScrollView>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <Text style={styles.title}>WebSocket Example</Text>
+      <Button title="Request Camera Permission" onPress={requestCameraPermission} />
+      <Button title="Request Microphone Permission" onPress={requestMicrophonePermission} />
+      <Button
+        title={isRecording ? "Stop Recording" : "Start Recording"}
+        onPress={isRecording ? stopRecording : startRecording}
+      />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 16,
+  },
+});
 
 export default AudioTextDisplay;

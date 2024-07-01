@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity, Image, PermissionsAndroid, Platform, Alert, Text } from "react-native";
 import { useNavigation } from '@react-navigation/native';
@@ -12,7 +14,7 @@ import {
   ViroAmbientLight,
   Viro3DObject,
   ViroMaterials,
-} from "@reactvision/react-viro";
+} from "@viro-community/react-viro";
 import styles from "../../styles/ar_styles";
 import useClientAudio from "../../../src/api/client-audio"; 
 import backButtonIcon from '../../assets/icon/back-icon.png';
@@ -105,7 +107,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
           position={[0,0,-5]}
           scale={[0.005, 0.005, 0.005]}
           rotation = {[0, 0, 0]}
-          materials={["joy"]}
+          materials={[emotion]}
           type = "OBJ"
         />
         :emotion === "sad"?

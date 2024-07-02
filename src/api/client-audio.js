@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Button,
   PermissionsAndroid,
   StatusBar,
   StyleSheet,
@@ -11,7 +10,6 @@ import {
 import AudioRecord from 'react-native-audio-record';
 import { Buffer } from 'buffer';
 
-// Request for camera permission
 const requestCameraPermission = async () => {
   console.log('Requesting camera permission...');
   try {
@@ -40,7 +38,6 @@ const requestCameraPermission = async () => {
   }
 };
 
-// Request for microphone permission
 const requestMicrophonePermission = async () => {
   console.log('Requesting microphone permission...');
   try {
@@ -69,13 +66,11 @@ const requestMicrophonePermission = async () => {
   }
 };
 
-// Main processing
 const AudioTextDisplay = () => {
   const audioSocketRef = useRef(null);
   const videoSocketRef = useRef(null);
   const reconnectInterval = 5000; // 5 seconds
   const isInitialized = useRef(false);
-  const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
     const connectSocket = (url, ref, message) => {
@@ -129,12 +124,22 @@ const AudioTextDisplay = () => {
           console.error('AudioRecord init error:', err);
         }
 
+        // =============================== TODO ========================================================
         AudioRecord.on('data', data => {
           console.log('Audio data received');
           if (audioSocketRef.current && audioSocketRef.current.readyState === WebSocket.OPEN) {
             audioSocketRef.current.send(data);
           }
         });
+        // =============================== TODO ========================================================
+
+
+        try {
+          await AudioRecord.start();
+          console.log('Recording started');
+        } catch (err) {
+          console.error('Error starting recording:', err);
+        }
       }
     };
 
@@ -148,37 +153,16 @@ const AudioTextDisplay = () => {
       if (videoSocketRef.current) {
         videoSocketRef.current.close();
       }
+      AudioRecord.stop()
+        .then(() => console.log('Recording stopped'))
+        .catch(err => console.error('Error stopping recording:', err));
     };
   }, []);
-
-  const startRecording = async () => {
-    try {
-      await AudioRecord.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error('Error starting recording:', err);
-    }
-  };
-
-  const stopRecording = async () => {
-    try {
-      await AudioRecord.stop();
-      setIsRecording(false);
-    } catch (err) {
-      console.error('Error stopping recording:', err);
-    }
-  };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Text style={styles.title}>WebSocket Example</Text>
-      <Button title="Request Camera Permission" onPress={requestCameraPermission} />
-      <Button title="Request Microphone Permission" onPress={requestMicrophonePermission} />
-      <Button
-        title={isRecording ? "Stop Recording" : "Start Recording"}
-        onPress={isRecording ? stopRecording : startRecording}
-      />
     </View>
   );
 };

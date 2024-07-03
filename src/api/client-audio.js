@@ -124,15 +124,24 @@ const AudioTextDisplay = () => {
           console.error('AudioRecord init error:', err);
         }
 
-        // =============================== TODO ========================================================
         AudioRecord.on('data', data => {
-          console.log('Audio data received');
           if (audioSocketRef.current && audioSocketRef.current.readyState === WebSocket.OPEN) {
-            audioSocketRef.current.send(data);
+            // Convert data to binary
+            const audioData = Buffer.from(data, 'base64'); // Assuming data is in base64 format
+            // Construct binary message as per server protocol
+            const messageType = 'audio';
+            const messageTypeBuffer = Buffer.alloc(5, ' '); // 5 bytes for the message type
+            messageTypeBuffer.write(messageType);
+            const metadata = JSON.stringify({ sampleRate: 16000 });
+            const metadataBuffer = Buffer.from(metadata, 'utf-8');
+            const metadataLengthBuffer = Buffer.alloc(4);
+            metadataLengthBuffer.writeUInt32LE(metadataBuffer.length);
+            const binaryMessage = Buffer.concat([messageTypeBuffer, metadataLengthBuffer, metadataBuffer, audioData]);
+
+            // Send binary data
+            audioSocketRef.current.send(binaryMessage);
           }
         });
-        // =============================== TODO ========================================================
-
 
         try {
           await AudioRecord.start();

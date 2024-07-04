@@ -88,15 +88,23 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
   };
 
   const takeScreenshot = () => {
-    props.sceneNavigator.takeScreenshot("AR_Screenshot", true).then(async (result: any) => {
+    // Debug
+    // const timestamp = new Date().getTime();
+    // const screenshotName = `AR_Screenshot_${timestamp}`;
+    const screenshotName = `AR_Screenshot`;
+    props.sceneNavigator.takeScreenshot(screenshotName, true).then(async (result: any) => {
       if (result.success) {
         if (result.url) {
           console.log(`Screenshot saved at: ${result.url}`);
           try {
             // Read the file and convert to base64
             const base64Data = await RNFS.readFile(result.url, 'base64');
-            setBase64Image(`${base64Data}`);
-            // console.log(`Base64 string: data:image/jpeg;base64,${base64Data.substr(0, 5)}`);
+            setBase64Image(base64Data);
+            
+            // Save the base64 string to a file
+            // const path = RNFS.DocumentDirectoryPath + '/image.txt';
+            // await RNFS.writeFile(path, base64Data, 'utf8');
+            // console.log(`Base64 image saved to ${path}`);
           } catch (error) {
             console.error("Error converting file to base64: ", error);
           }
@@ -104,12 +112,13 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
           console.error("No URL returned from takeScreenshot.");
         }
       } else {
-        console.log(`Fail to get screenshot`);
+        console.log("Failed to take screenshot");
       }
     }).catch((error: any) => {
       console.error("Error taking screenshot: ", error);
     });
   };
+
 
   function onInitialized(state: any, reason: ViroTrackingReason) {
     console.log("onInitialized", state, reason);

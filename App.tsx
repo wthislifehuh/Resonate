@@ -1,7 +1,7 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { ScreenshotProvider } from './src/api/ScreenshotContext'; // Adjust the path as necessary
+import { ScreenshotProvider } from './src/context/ScreenshotContext'; // Adjust the path as necessary
 import HomePage from "./lib/pages/home_page";
 import ARScene from "./lib/pages/ar/arscene";
 import ProfilePage from "./lib/pages/profile_page";

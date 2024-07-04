@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Image, PermissionsAndroid, Platform, Alert, Tex
 import { useNavigation } from '@react-navigation/native';
 import ARConverse from "./arConverse";
 import { check, request, PermissionStatus } from 'react-native-permissions';
+import Voice from '@react-native-voice/voice';
 import {
   ViroARSceneNavigator,
   ViroARScene,
@@ -16,7 +17,7 @@ import RNFS from 'react-native-fs';
 import styles from "../../styles/ar_styles";
 import useClientAudio from "../../../src/api/client-audio"; 
 import backButtonIcon from '../../assets/icon/back-icon.png';
-import { useScreenshot } from '../../../src/api/ScreenshotContext'; 
+import { useScreenshot } from '../../../src/context/ScreenshotContext'; 
 
 type RootStackParamList = {
   ARScene: undefined;
@@ -27,7 +28,68 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
   const { setBase64Image } = useScreenshot(); // Use the custom hook to access the context
   const [cameraPermission, setCameraPermission] = useState<PermissionStatus | null>(null);
   let { emotion, transcription } = props.sceneNavigator.viroAppProps;
+  const [isRecording, setIsRecording] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState("Initializing AR...");
+
+  useEffect(() => {
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechError = onSpeechError;
+    Voice.onSpeechResults = onSpeechResults;
+
+    requestCameraPermission();
+
+    const interval = setInterval(() => {
+      takeScreenshot();
+    }, 10000);
+
+    // Start recording when the component mounts
+    startRecording();
+
+    // Stop recording and clean up when the component unmounts
+    return () => {
+      stopRecording();
+      Voice.destroy().then(Voice.removeAllListeners);
+      clearInterval(interval); // Clear the interval on component unmount
+    };
+  }, []);
+
+  const onSpeechStart = () => setIsRecording(true);
+  const onSpeechEnd = () => {
+    setIsRecording(false);
+    // Restart recording to continuously recognize speech
+    startRecording();
+  };
+  const onSpeechError = (err: any) => {
+    setError(err.error.message);
+    // Restart recording on error
+    startRecording();
+  };
+  const onSpeechResults = (result: any) => {
+    if (result.value && result.value.length > 0) {
+      setText(result.value[0]);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      await Voice.start('en-US');
+      setIsRecording(true);
+      setError(null);
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      await Voice.stop();
+      setIsRecording(false);
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
 
   ViroMaterials.createMaterials({
     joy:{
@@ -49,15 +111,6 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
       diffuseTexture:require('../../assets/object/neutral.png')
     },
   });
-
-  useEffect(() => {
-    requestCameraPermission();
-    const interval = setInterval(() => {
-      takeScreenshot();
-    }, 10000);
-
-    return () => clearInterval(interval); // Clear the interval on component unmount
-  }, []);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -122,11 +175,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
 
   function onInitialized(state: any, reason: ViroTrackingReason) {
     console.log("onInitialized", state, reason);
-    if (state === ViroTrackingStateConstants.TRACKING_NORMAL) {
-      setText(`${transcription}`);
-    } else if (state === ViroTrackingStateConstants.TRACKING_UNAVAILABLE) {
-      // Handle loss of tracking
-    }
+    // No need to set text here, as it is being set by the voice recognition results
   }
 
   return (

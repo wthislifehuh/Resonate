@@ -8,6 +8,7 @@ import resonateFaceBackground from '../assets/resonate-background.png';
 import info from '../assets/white-info.png';
 import dropdown from '../assets/dropdown.png';
 import profile from '../assets/icon/profile-icon.png';
+import Tts from 'react-native-tts'
 
 type Props = {
   navigation: HomeScreenNavigationProp;
@@ -26,6 +27,10 @@ const HomePage: React.FC<Props> = ({ navigation }) => {
   const [profileImage, setProfileImage] = useState(resonateFaceBackground);
   const [profileName, setProfileName] = useState("Jennifer Tan");
   const [profileSubtitle, setProfileSubtitle] = useState("Hearing-Impaired");
+
+  const handleSend = () => {
+    Tts.speak(profileDescription);
+  };
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -95,7 +100,7 @@ const HomePage: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.languageText1}>{selectedLanguage}</Text>
                 <Image source={dropdown} style={styles.dropdownIcon} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleSend}>
                 <Image source={{ uri: 'https://img.icons8.com/pulsar-line/48/speaker.png' }} style={styles.icon} />
               </TouchableOpacity>
             </View>

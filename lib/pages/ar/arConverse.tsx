@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import { Image, View, TextInput, TouchableOpacity, Text, StyleSheet, Keyboard, Modal, Animated, PanResponder, FlatList } from "react-native";
 import styles from "../../styles/ar_page_styles";
+import Tts from 'react-native-tts'
 
 const ARConverse: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("German");
+  const [selectedLanguage, setSelectedLanguage] = useState("English(default)");
   const [languages] = useState([
     "English(default)",
     "Chinese",
@@ -16,8 +17,8 @@ const ARConverse: React.FC = () => {
     "Japanese",
     "Malay",
     "Korean",
-
   ]);
+
 
   const translateY = useRef(new Animated.Value(0)).current;
   const panResponder = useRef(
@@ -51,6 +52,7 @@ const ARConverse: React.FC = () => {
     console.log(textInput);
     setTextInput("");
     Keyboard.dismiss();
+    Tts.speak(textInput);
   };
 
   const renderLanguageItem = ({ item }: { item: string }) => (

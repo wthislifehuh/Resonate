@@ -27,7 +27,6 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
   const { setBase64Image } = useScreenshot(); // Use the custom hook to access the context
   const [cameraPermission, setCameraPermission] = useState<PermissionStatus | null>(null);
   let { emotion, transcription } = props.sceneNavigator.viroAppProps;
-  const [screenshotStatus, setScreenshotStatus] = useState<string | null>(null);
   const [text, setText] = useState("Initializing AR...");
 
   ViroMaterials.createMaterials({
@@ -91,7 +90,6 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
   const takeScreenshot = () => {
     props.sceneNavigator.takeScreenshot("AR_Screenshot", true).then(async (result: any) => {
       if (result.success) {
-        setScreenshotStatus("Screenshot taken successfully!");
         if (result.url) {
           console.log(`Screenshot saved at: ${result.url}`);
           try {
@@ -106,13 +104,10 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
           console.error("No URL returned from takeScreenshot.");
         }
       } else {
-        setScreenshotStatus("Failed to take screenshot.");
+        console.log(`Fail to get screenshot`);
       }
-      setTimeout(() => setScreenshotStatus(null), 3000); // Clear message after 3 seconds
     }).catch((error: any) => {
       console.error("Error taking screenshot: ", error);
-      setScreenshotStatus("Failed to take screenshot.");
-      setTimeout(() => setScreenshotStatus(null), 3000);
     });
   };
 

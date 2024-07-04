@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     helloWorldTextStyle: {
       fontFamily: "Poppins", // Arial, sans-serif
       fontSize: 30,
-      color: colors.white,
+      color: colors.yellow,
       textAlignVertical: "center",
       textAlign: "center",
       backgroundColor: colors.black,

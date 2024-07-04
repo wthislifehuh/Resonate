@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useScreenshot } from './ScreenshotContext'; // Import the custom hook
+import { useScreenshot } from '../context/ScreenshotContext'; // Import the custom hook
 
 const useClientAudio = () => {
   const { base64Image } = useScreenshot(); // Consume the base64 image from the context

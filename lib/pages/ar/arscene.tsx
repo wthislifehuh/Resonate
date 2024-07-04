@@ -182,12 +182,21 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
     <ViroARScene onTrackingUpdated={onInitialized}>
       <ViroText
         text={text}
-        scale={[0.2, 0.2, 0.2]}  // Increase the scale
-        position={[0, -0.5, -1]}  // Adjust position
-        width={5}  // Set width for text wrapping
-        height={2}  // Set height for text wrapping
+        scale={[0.2, 0.2, 0.2]}  
+        position={[0, -0.5, -1]}  
+        width={5}  
+        height={2}  
         style={styles.helloWorldTextStyle}
-        maxLines={7}  // Allow text wrapping to 3 lines
+        maxLines={7}  
+      />
+      <ViroText
+        text={emotion}
+        scale={[0.2, 0.2, 0.2]}  
+        position={[0, -0.4, -1]}  
+        width={5}  
+        height={2}  
+        style={styles.helloWorldTextStyle}
+        maxLines={7}  
       />
       {emotion === "joy"?
         <Viro3DObject

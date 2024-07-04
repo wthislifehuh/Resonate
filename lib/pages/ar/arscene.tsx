@@ -97,7 +97,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
           try {
             // Read the file and convert to base64
             const base64Data = await RNFS.readFile(result.url, 'base64');
-            setBase64Image(`data:image/jpeg;base64,${base64Data}`);
+            setBase64Image(`${base64Data}`);
             // console.log(`Base64 string: data:image/jpeg;base64,${base64Data.substr(0, 5)}`);
           } catch (error) {
             console.error("Error converting file to base64: ", error);

@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
       color: colors.white,
       textAlignVertical: "center",
       textAlign: "center",
+      backgroundColor: colors.black,
     },
     backButton: {
       position: 'absolute',

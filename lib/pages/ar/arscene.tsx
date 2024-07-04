@@ -182,14 +182,17 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
     <ViroARScene onTrackingUpdated={onInitialized}>
       <ViroText
         text={text}
-        scale={[0.3, 0.3, 0.3]}
-        position={[0, -0.4, -1]}
+        scale={[0.2, 0.2, 0.2]}  // Increase the scale
+        position={[0, -0.5, -1]}  // Adjust position
+        width={5}  // Set width for text wrapping
+        height={2}  // Set height for text wrapping
         style={styles.helloWorldTextStyle}
+        maxLines={7}  // Allow text wrapping to 3 lines
       />
       {emotion === "joy"?
         <Viro3DObject
           source={require('../../assets/object/joy.obj')}
-          position={[0, 0, -5]}
+          position={[0, -1, -5]}
           scale={[0.005, 0.005, 0.005]}
           rotation={[0, 0, 0]}
           materials={[emotion]}
@@ -198,7 +201,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
         : emotion === "sad"?
         <Viro3DObject
           source={require('../../assets/object/joy.obj')}
-          position={[0, 0, -5]}
+          position={[0, -1, -5]}
           scale={[0.005, 0.005, 0.005]}
           rotation={[0, 0, 0]}
           materials={["sad"]}
@@ -207,7 +210,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
         : emotion === "angry"?
         <Viro3DObject
           source={require('../../assets/object/joy.obj')}
-          position={[0, 0, -5]}
+          position={[0, -1, -5]}
           scale={[0.005, 0.005, 0.005]}
           rotation={[0, 0, 0]}
           materials={["angry"]}
@@ -216,7 +219,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
         : emotion === "surprised"?
         <Viro3DObject
           source={require('../../assets/object/joy.obj')}
-          position={[0, 0, -5]}
+          position={[0, -1, -5]}
           scale={[0.005, 0.005, 0.005]}
           rotation={[0, 0, 0]}
           materials={["surprised"]}
@@ -225,7 +228,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
         : emotion === "fear"?
         <Viro3DObject
           source={require('../../assets/object/joy.obj')}
-          position={[0, 0, -5]}
+          position={[0, -1, -5]}
           scale={[0.005, 0.005, 0.005]}
           rotation={[0, 0, 0]}
           materials={["fear"]}
@@ -234,7 +237,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
         :
         <Viro3DObject
           source={require('../../assets/object/joy.obj')}
-          position={[0, 0, -5]}
+          position={[0, -1, -5]}
           scale={[0.005, 0.005, 0.005]}
           rotation={[0, 0, 0]}
           materials={["neutral"]}

@@ -6,11 +6,13 @@ import HomePage from "./lib/pages/home_page";
 import ARScene from "./lib/pages/ar/arscene";
 import ProfilePage from "./lib/pages/profile_page";
 import { RootStackParamList } from "./lib/pages/types";
+import { TextRecognitionProvider } from './src/context/text';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
+    <TextRecognitionProvider>
     <ScreenshotProvider>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
@@ -30,6 +32,7 @@ const App = () => {
       </Stack.Navigator>
     </NavigationContainer>
     </ScreenshotProvider>
+    </TextRecognitionProvider>
   );
 };
 

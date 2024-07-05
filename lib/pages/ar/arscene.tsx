@@ -15,9 +15,10 @@ import {
 } from "@viro-community/react-viro";
 import RNFS from 'react-native-fs';
 import styles from "../../styles/ar_styles";
-import useClientAudio from "../../../src/api/client-audio"; 
 import backButtonIcon from '../../assets/icon/back-icon.png';
-import { useScreenshot } from '../../../src/context/ScreenshotContext'; 
+import { useScreenshot } from '../../../src/context/imageContext'; 
+import { useTextRecognition } from '../../../src/context/textContext';
+import useFusion from "../../../src/api/fusion";
 
 type RootStackParamList = {
   ARScene: undefined;
@@ -25,11 +26,11 @@ type RootStackParamList = {
 };
 
 const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
-  const { setBase64Image } = useScreenshot(); // Use the custom hook to access the context
   const [cameraPermission, setCameraPermission] = useState<PermissionStatus | null>(null);
-  let { emotion, transcription } = props.sceneNavigator.viroAppProps;
+  const { emotion } = useFusion();
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { setRecognizedText } = useTextRecognition();
   const [text, setText] = useState("Initializing AR...");
 
   useEffect(() => {
@@ -42,7 +43,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
 
     const interval = setInterval(() => {
       takeScreenshot();
-    }, 10000);
+    }, 5000);
 
     // Start recording when the component mounts
     startRecording();
@@ -68,7 +69,9 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
   };
   const onSpeechResults = (result: any) => {
     if (result.value && result.value.length > 0) {
-      setText(result.value[0]);
+      const recognizedText = result.value[0];
+      setText(recognizedText);
+      setRecognizedText(recognizedText);
     }
   };
 
@@ -142,25 +145,18 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
 
   const takeScreenshot = () => {
     // Debug
-    // const timestamp = new Date().getTime();
-    // const screenshotName = `AR_Screenshot_${timestamp}`;
     const screenshotName = `AR_Screenshot`;
     props.sceneNavigator.takeScreenshot(screenshotName, true).then(async (result: any) => {
       if (result.success) {
         if (result.url) {
           console.log(`Screenshot saved at: ${result.url}`);
-          try {
-            // Read the file and convert to base64
-            const base64Data = await RNFS.readFile(result.url, 'base64');
-            setBase64Image(base64Data);
-            
-            // Save the base64 string to a file
-            // const path = RNFS.DocumentDirectoryPath + '/image.txt';
-            // await RNFS.writeFile(path, base64Data, 'utf8');
-            // console.log(`Base64 image saved to ${path}`);
-          } catch (error) {
-            console.error("Error converting file to base64: ", error);
-          }
+          // try {
+          //   // Read the file and convert to base64
+          //   const base64Data = await RNFS.readFile(result.url, 'base64');
+          //   setBase64Image(base64Data);
+          // } catch (error) {
+          //   console.error("Error converting file to base64: ", error);
+          // }
         } else {
           console.error("No URL returned from takeScreenshot.");
         }
@@ -171,7 +167,6 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
       console.error("Error taking screenshot: ", error);
     });
   };
-
 
   function onInitialized(state: any, reason: ViroTrackingReason) {
     console.log("onInitialized", state, reason);
@@ -258,7 +253,7 @@ const ARScene: React.FC<{ sceneNavigator: any, navigation: any }> = (props) => {
 };
 
 export default () => {
-  const { emotion, transcription } = useClientAudio();
+  const { emotion } = useFusion();
   const navigation = useNavigation();
     
   return (
@@ -268,7 +263,7 @@ export default () => {
         initialScene={{
           scene: ARScene,
         }}
-        viroAppProps={{ emotion, transcription }}
+        viroAppProps={{ emotion }}
         style={styles.f1}
       />
       <ARConverse />

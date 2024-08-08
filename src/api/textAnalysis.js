@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 
 // Load the OpenAI API key from environment variables
-const apiKey = 'sk-proj-o20LwZHgy0vWmzmAJH79T3BlbkFJ7olU1ITNkMKSwf3xDSVQ';
+const apiKey = 'API_KEY';
 
 /**
  * Analyzes the emotions of a given text.

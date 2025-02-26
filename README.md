@@ -3,6 +3,11 @@
 Project Overview:
 "Resonate" is an AR-based application designed to enhance human communication by recognizing and transcribing real-time emotional context, aiding those who struggle with emotion perception. It offers real-time speech-to-text transcription, multilingual translation and AI text summary to foster inclusive, accessible, and empathetic interactions across diverse languages and cultures.
 
+## Showcase
+![Project Screenshot](https://github.com/wthislifehuh/Resonate/blob/main/image.png?raw=true)
+
+# Instruction
+
 This is a new [**React Native**](https://reactnative.dev) project, set up with `@reactvision/react-viro`.
 
 ## How to Install Viro in an existing project?
